@@ -1,8 +1,8 @@
 package org.example.sqlsanitize.service;
 
+import lombok.RequiredArgsConstructor;
 import org.example.sqlsanitize.model.SensitiveWord;
 import org.example.sqlsanitize.repository.SensitiveWordRepository;
-import lombok.RequiredArgsConstructor;
 import org.example.sqlsanitize.util.WordUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,50 +12,50 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * Service layer responsible for all business logic around sensitive SQL words/phrases.
- * <p>
- * Supports:
+ * Handles the main logic for working with sensitive words/phrases.
+ *
+ * <p>Includes:</p>
  * <ul>
- *   <li>Retrieving the complete, sorted list of sensitive words or phrases.</li>
- *   <li>Adding new words/phrase.</li>
- *   <li>Updating a word/phrase</li>
- *   <li>Deleting existing words by ID.</li>
- *   <li>Sanitizing incoming text by masking stored sensitive words, that appear in the text.</li>
+ *   <li>Listing all stored words/phrases in alphabetical order</li>
+ *   <li>Adding new ones with validation and duplicate checks</li>
+ *   <li>Updating existing ones by ID</li>
+ *   <li>Deleting by ID</li>
+ *   <li>Masking them out of any given text</li>
  * </ul>
+ *
+ * <p>Words are normalized (trimmed and lowercased) before saving.
+ * Matching in text is case-insensitive and uses safe regex boundaries so only whole matches are replaced.</p>
  */
 @Service
 @RequiredArgsConstructor
 public class SensitiveWordService {
 
-    // TODO: update javadocs, fix update (put) method, find solution for special chars in regex
     private final SensitiveWordRepository sensitiveWordRepository;
 
     /**
-     * Fetches all sensitive words from the database, sorted alphabetically (case-insensitive).
-     *
-     * @return a non-null, modifiable {@link List} of {@link SensitiveWord} entities.
+     * Returns all stored sensitive words/phrases, sorted alphabetically (ignoring case).
      */
     @Transactional(readOnly = true)
     public List<SensitiveWord> getAllSensitiveWords() {
         List<SensitiveWord> words = sensitiveWordRepository.findAll();
-        // Sort the words alphabetically
         words.sort(Comparator.comparing(SensitiveWord::getWord, String.CASE_INSENSITIVE_ORDER));
         return words;
     }
 
     /**
-     * Creates a new sensitive word entry.
+     * Adds a new sensitive word or phrase.
      *
-     * @param wordDto the incoming SensitiveWord DTO; its id is ignored
-     * @return the saved entity with generated id
-     * @throws IllegalArgumentException if the word is null or blank
-     * @throws IllegalStateException    if the word already exists
+     * <p>Trims and lowercases the input, then checks for duplicates (case-insensitive).</p>
+     *
+     * @param word the word or phrase to add, e.g. "select", "order by"
+     * @return the saved entity with its generated ID
+     * @throws IllegalArgumentException if input is null or blank
+     * @throws IllegalStateException if it already exists
      */
     @Transactional
-    public SensitiveWord add(SensitiveWord wordDto) {
-        String normalizedWord = WordUtils.validateAndNormalize(wordDto.getWord());
+    public SensitiveWord add(String word) {
+        String normalizedWord = WordUtils.validateAndNormalize(word);
 
-        // Check duplicates
         if (sensitiveWordRepository.existsByWordIgnoreCase(normalizedWord)) {
             throw new IllegalStateException("Word/Phrase already exists: " + normalizedWord);
         }
@@ -66,29 +66,29 @@ public class SensitiveWordService {
     }
 
     /**
-     * Updates an existing sensitive word by id.
+     * Updates an existing sensitive word/phrase by ID.
      *
-     * @param id      the id of the word to update
-     * @param payload DTO carrying the new word (id ignored)
+     * <p>Also trims, lowercases, and checks for duplicates (ignoring case).
+     * The existing entity’s ID stays the same.</p>
+     *
+     * @param id the ID to update
+     * @param word the new value to store
      * @return the updated entity
-     * @throws IllegalArgumentException if id is null or payload word invalid
-     * @throws NoSuchElementException   if no entity with {@code id} exists
-     * @throws IllegalStateException    if the new word duplicates another entry
+     * @throws IllegalArgumentException if ID is null or value is invalid
+     * @throws NoSuchElementException if no entry with this ID exists
+     * @throws IllegalStateException if the new value already exists elsewhere
      */
     @Transactional
-    public SensitiveWord update(Long id, SensitiveWord payload) {
+    public SensitiveWord update(Long id, String word) {
         if (id == null) {
             throw new IllegalArgumentException("ID must not be null");
         }
 
-        // Load or fail
         SensitiveWord existing = sensitiveWordRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("No word found with ID " + id));
 
-        // Ensure that the word is valid and to lowercase the word
-        String normalized = WordUtils.validateAndNormalize(payload.getWord());
+        String normalized = WordUtils.validateAndNormalize(word);
 
-        // Ensure there are no duplicates, excluding itself now
         sensitiveWordRepository.findByWordIgnoreCase(normalized)
                 .filter(sWord -> !sWord.getId().equals(id))
                 .ifPresent(sWord -> {
@@ -100,13 +100,12 @@ public class SensitiveWordService {
     }
 
     /**
-     * Deletes the sensitive word with the given ID.
-     * <p>
-     * No-op if the ID does not exist.
-     * </p>
+     * Deletes a sensitive word/phrase by ID.
      *
-     * @param id the ID of the sensitive word to delete; must not be null
-     * @throws IllegalArgumentException if {@code id} is null.
+     * <p>Does nothing if the ID doesn’t exist.</p>
+     *
+     * @param id the ID to delete
+     * @throws IllegalArgumentException if ID is null
      */
     @Transactional
     public void deleteById(Long id) {
@@ -117,15 +116,14 @@ public class SensitiveWordService {
     }
 
     /**
-     * Sanitizes the provided text by masking all stored sensitive words
-     * with the same number of asterisks as the word’s length.
-     * <p>
-     * Matching is case-insensitive.  Pure “word” tokens (letters/digits/_) use word-boundaries.
-     * Symbols or mixed tokens (e.g. "*", "@admin") use non-word lookarounds.
-     * </p>
+     * Masks any stored sensitive words/phrases in the given text.
      *
-     * @param input the text to sanitize; may be null or empty
-     * @return a non-null sanitized string
+     * <p>Matching is case-insensitive. Whole words use \b boundaries;
+     * phrases or special characters use lookarounds so they’re matched exactly,
+     * without touching similar words.</p>
+     *
+     * @param input the text to sanitize; returns it as-is if null/empty
+     * @return sanitized text with matches replaced by asterisks (same length as the match)
      */
     @Transactional(readOnly = true)
     public String sanitize(String input) {
@@ -134,13 +132,9 @@ public class SensitiveWordService {
         }
         String result = input;
 
-        // Load all your preloaded SQL keywords/phrases
-        List<SensitiveWord> words = sensitiveWordRepository.findAll();
-
-        for (SensitiveWord w : words) {
+        for (SensitiveWord w : sensitiveWordRepository.findAll()) {
             String raw = w.getWord();
             String regex = WordUtils.buildBoundaryRegex(raw);
-            // mask length = number of characters in the keyword/phrase
             String mask = "*".repeat(raw.length());
             result = result.replaceAll(regex, mask);
         }

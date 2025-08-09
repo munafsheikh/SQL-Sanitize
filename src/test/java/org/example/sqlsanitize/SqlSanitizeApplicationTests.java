@@ -1,15 +1,29 @@
 package org.example.sqlsanitize;
 
+import org.example.sqlsanitize.service.SensitiveWordService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+/**
+ * Boots the Spring context to ensure basic wiring is OK.
+ * Uses the 'test' profile to avoid bringing up a real DataSource.
+ */
+@ActiveProfiles("test")
+@SpringBootTest(
+        properties = {
+                "spring.autoconfigure.exclude=" +
+                        "org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration," +
+                        "org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration"
+        }
+)
 class SqlSanitizeApplicationTests {
 
-	//TODO: Create tests
+    @MockBean
+    SensitiveWordService sensitiveWordService;
 
-	@Test
-	void contextLoads() {
-	}
-
+    @Test
+    void contextLoads() {
+    }
 }

@@ -3,34 +3,37 @@ package org.example.sqlsanitize.api;
 import lombok.Getter;
 
 /**
- * The set of response codes for this small service.
- * Only the codes we actually need:
+ * List of response codes used by this service.
+ * <p>
+ * Each entry has:
+ * <ul>
+ *   <li>a numeric code</li>
+ *   <li>a short, default message</li>
+ * </ul>
  */
 @Getter
 public enum ApiCode {
-    /** This is a generic "All is fine" */
+
+    /** Generic "everything went fine" success. */
     OK(200, "Action successful"),
-    /** This is when create completed successfully. */
+
+    /** Resource was successfully created. */
     CREATED(201, "Resource created"),
-    /** This is used when no content exists. */
+
+    /** No data found for the request. */
     NO_CONTENT(204, "No sensitive words found"),
-    /** This is a Catch-all for any server-side errors. */
+
+    /** Unexpected server-side error. */
     ERROR(500, "Internal server error");
 
-    /**
-     * -- GETTER --
-     * Numeric HTTP-style code.
-     */
-    private final int    id;
-    /**
-     * -- GETTER --
-     * The default message.
-     */
+    /** Numeric code (HTTP-style). */
+    private final int id;
+
+    /** Default message text for the code. */
     private final String description;
 
     ApiCode(int id, String description) {
         this.id = id;
         this.description = description;
     }
-
 }

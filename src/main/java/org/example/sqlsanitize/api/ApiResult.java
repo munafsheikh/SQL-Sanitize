@@ -1,49 +1,45 @@
 package org.example.sqlsanitize.api;
 
+import lombok.Getter;
+
 import java.time.ZonedDateTime;
 
 /**
- * A simple, generic wrapper for all API responses.
+ * Generic wrapper for API responses in this service.
+ * <p>
+ * Standardizes the structure so all endpoints return:
+ * <ul>
+ *   <li>a timestamp (when the response was generated)</li>
+ *   <li>a status code and message (from {@link ApiCode})</li>
+ *   <li>optional payload data</li>
+ * </ul>
  *
- * @param <T> the type of the payload (or {@code Void} if none)
+ * @param <T> the type of the payload (use {@code Void} if none)
  */
+@Getter
 public class ApiResult<T> {
 
-    /** When the response was created. */
+    /** When this response was created. */
     private final ZonedDateTime timestamp = ZonedDateTime.now();
 
-    /** The numeric code of this result (see {@link ApiCode}). */
+    /** Numeric status code (mirrors {@link ApiCode#getId()}). */
     private final int code;
 
-    /** A human-readable message for this code. */
+    /** Short, human-readable description of the result. */
     private final String message;
 
-    /** Optional payload data. */
+    /** Optional payload data; can be {@code null} if not applicable. */
     private final T data;
 
     /**
-     * Create a result with no payload.
+     * Create a new API result.
      *
-     * @param apiCode the code to return
-     */
-    public ApiResult(ApiCode apiCode) {
-        this(apiCode, null);
-    }
-
-    /**
-     * Create a result with payload.
-     *
-     * @param apiCode the code to return
-     * @param data    the payload (may be null)
+     * @param apiCode the status code/message pair to use
+     * @param data    the payload (may be {@code null})
      */
     public ApiResult(ApiCode apiCode, T data) {
         this.code    = apiCode.getId();
         this.message = apiCode.getDescription();
         this.data    = data;
     }
-
-    public ZonedDateTime getTimestamp() { return timestamp; }
-    public int            getCode()      { return code;      }
-    public String         getMessage()   { return message;   }
-    public T              getData()      { return data;      }
 }

@@ -4,41 +4,43 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * Util class that can be used to validate and normalize words,
- * and a boundary regex builder to catch SQL words and characters.
+ * Small helper utilities for dealing with sensitive words/phrases:
+ * <ul>
+ *   <li>Normalize user input (trim + lowercase)</li>
+ *   <li>Build a safe, case-insensitive regex that matches whole words or full phrases</li>
+ * </ul>
  */
 public final class WordUtils {
 
-    /** The \w covers letters, digits, underscore (A–Z, a–z, 0–9, _). */
+    /** Matches strings made only of letters/digits/underscore (i.e., what \w covers). */
     private static final Pattern WORD_ONLY_PATTERN = Pattern.compile("^\\w+$");
 
-    /** Flag to say that we want to test ignoring case sensitivity */
+    /** Case-insensitive flag for the regex. */
     private static final String CASE_INSENSITIVE_FLAG = "(?i)";
 
-    /** This is to show the boundary of a word */
+    /** Word boundary token for pure word matches. */
     private static final String WORD_BOUNDARY = "\\b";
 
     /**
-     * The below regex is to ensure that we cater for the following scenarios:
-     * 1. Whole words only – e.g. it will match “SELECT” in “SELECT * FROM” but not the “SELECT” inside “UNSELECTED”.
-     * 2. Multi-word phrases – e.g. it will match “ORDER BY” as one block, not “ORDER” and “BY” separately.
-     * 3. Symbols and punctuation – e.g. it will still match “*” when surrounded by spaces.
-     * <p>
-     Backwards check for a non-word character (space) or start of the text. */
+     * Look-behind that says: the char before the match must be a non-word char (space, punctuation, etc.) or start of text.
+     * Helps us match a whole phrase like "order by" but not the "order" inside "preorder".
+     */
     private static final String LOOKAROUND_PREFIX = "(?<=\\W|^)";
 
-    /** Forward check for a non-word character or end of the text. */
+    /**
+     * Look-ahead that says: the char after the match must be a non-word char or end of text.
+     * Same idea as above, but on the right side of the match.
+     */
     private static final String LOOKAROUND_SUFFIX = "(?=\\W|$)";
 
     private WordUtils() { }
 
     /**
-     * Validates that the given raw input is non-null, non-blank,
-     * then returns it trimmed and lower-cased.
+     * Validate that input is non-null and not blank, then trim and lowercase it.
      *
-     * @param rawInput the raw word input from the client
-     * @return a trimmed, lower-case version of {@code rawInput}
-     * @throws IllegalArgumentException if {@code rawInput} is null or blank (after trimming)
+     * @param rawInput raw word/phrase from the client
+     * @return trimmed, lowercase version of the input
+     * @throws IllegalArgumentException if input is null or blank after trimming
      */
     public static String validateAndNormalize(String rawInput) {
         if (Objects.isNull(rawInput)) {
@@ -51,34 +53,27 @@ public final class WordUtils {
         return trimmedInput.toLowerCase();
     }
 
-
-    // TODO: (TEST) try to break buildBoundaryRegex as it might not cater for all scenarios yet
     /**
-     * Builds a regex that matches exactly the given SQL keyword or phrase:
+     * Build a regex that matches the given term exactly (not partials), case-insensitively.
      * <ul>
-     *   <li>If {@code term} is purely letters/digits/underscore (e.g. "SELECT"),
-     *       we use \b…\b.</li>
-     *   <li>Otherwise (spaces, symbols inside), we use look-arounds to ensure that we match the whole phrase.</li>
+     *   <li><strong>Pure word</strong> (letters/digits/_): use {@code \b... \b} so "select" won’t match "selected".</li>
+     *   <li><strong>Phrase or symbols</strong> (spaces, "*", etc.): use lookarounds so we still match the whole term,
+     *       e.g. "order by" or "*" only when it stands alone (surrounded by non-word chars or edges).</li>
      * </ul>
+     * All special characters in the term are escaped via {@link Pattern#quote(String)} to avoid regex surprises.
      *
-     * @param term the exact keyword or phrase, e.g. "ORDER BY" or "SELECT * FROM"
-     * @return a case-insensitive regex that matches only that term
+     * @param term the exact word/phrase to match (e.g., "SELECT", "ORDER BY", "*", "select * from")
+     * @return a regex string you can pass to {@code String.replaceAll} or {@code Pattern.compile}
      */
     public static String buildBoundaryRegex(String term) {
         String quotedTerm = Pattern.quote(term);
 
+        // Simple case: just a single "word" (letters/digits/_)
         if (WORD_ONLY_PATTERN.matcher(term).matches()) {
-            // If there are no symbols or weird characters to cater for
-            return CASE_INSENSITIVE_FLAG
-                    + WORD_BOUNDARY
-                    + quotedTerm
-                    + WORD_BOUNDARY;
+            return CASE_INSENSITIVE_FLAG + WORD_BOUNDARY + quotedTerm + WORD_BOUNDARY;
         }
 
-        // If we are dealing with phrases or terms that contain symbols
-        return CASE_INSENSITIVE_FLAG
-                + LOOKAROUND_PREFIX
-                + quotedTerm
-                + LOOKAROUND_SUFFIX;
+        // Otherwise: phrases/symbols; anchor with non-word or string edges
+        return CASE_INSENSITIVE_FLAG + LOOKAROUND_PREFIX + quotedTerm + LOOKAROUND_SUFFIX;
     }
 }
