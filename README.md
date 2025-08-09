@@ -4,6 +4,8 @@ A microservice that manages a list of "sensitive" words or phrases and can sanit
 
 Please refer to: [Approach](docs/APPROACH.md) for more information of how I solve this assignment.
 
+<img width="1473" height="667" alt="image" src="https://github.com/user-attachments/assets/725eb6b3-40da-4d6c-a8a0-9a5736756f7b" />
+
 ---
 
 ## Features
