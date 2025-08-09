@@ -2,6 +2,8 @@
 
 A microservice that manages a list of "sensitive" words or phrases and can sanitize a given text by masking those words with asterisks.  
 
+Please refer to: [Approach](../docs/APPROACH.md) for more information of how I solve this assignment.
+
 ---
 
 ## Features
