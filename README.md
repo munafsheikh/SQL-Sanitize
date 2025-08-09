@@ -1,0 +1,36 @@
+# SQL Sanitize API
+
+A microservice that manages a list of "sensitive" words or phrases and can sanitize a given text by masking those words with asterisks.  
+
+---
+
+## Features
+
+- **CRUD endpoints** for managing sensitive words/phrases.
+- **Sanitize endpoint** that replaces any configured sensitive word/phrase in a given string with asterisks.
+- **Swagger/OpenAPI** documentation with clear request/response examples.
+- **Unit tests** for controller, service, and utility classes.
+- **MSSQL** for database etc.
+
+---
+
+## Tech Stack
+
+- **Java 17**
+- **Spring Boot**
+- **Spring Data JPA**
+- **MSSQL** (production)
+- **H2** (test profile)
+- **Flyway** (DB migrations)
+- **Lombok**
+- **Swagger / springdoc-openapi**
+- **JUnit 5 + Mockito**
+
+---
+
+## Running the Application
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/<your-repo>/sql-sanitize.git
+cd sql-sanitize
