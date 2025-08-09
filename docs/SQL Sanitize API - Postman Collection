@@ -37,7 +37,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"word\": \"SELECT\"}"
+					"raw": "{\"word\": \"action\"}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/sensitive-words",
@@ -65,10 +65,10 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"word\": \"order by\"}"
+					"raw": "{\"word\": \"actions\"}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/sensitive-words/:id",
+					"raw": "{{baseUrl}}/api/sensitive-words/:id?=7",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -77,10 +77,16 @@
 						"sensitive-words",
 						":id"
 					],
+					"query": [
+						{
+							"key": null,
+							"value": "7"
+						}
+					],
 					"variable": [
 						{
 							"key": "id",
-							"value": "1"
+							"value": "7"
 						}
 					]
 				}
@@ -93,7 +99,7 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{baseUrl}}/api/sensitive-words/:id",
+					"raw": "{{baseUrl}}/api/sensitive-words/:id?=7",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -102,10 +108,16 @@
 						"sensitive-words",
 						":id"
 					],
+					"query": [
+						{
+							"key": null,
+							"value": "7"
+						}
+					],
 					"variable": [
 						{
 							"key": "id",
-							"value": "1"
+							"value": "7"
 						}
 					]
 				}
@@ -113,7 +125,7 @@
 			"response": []
 		},
 		{
-			"name": "Sanitize text",
+			"name": "Sanitize Query",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -124,19 +136,27 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"text\": \"Select * from users order by name\"}"
+					"raw": "{\r\n    \"input\": \"SELECT name, salary FROM employees WHERE department = 'HR' AND salary > 50000 ORDER BY hire_date DESC; INSERT INTO audit_log (event, created_at) VALUES ('DROP TABLE test;' , GETDATE()); UPDATE accounts SET balance = balance - 100 WHERE id = 42; DELETE FROM sessions WHERE expires < CURRENT_TIMESTAMP; GRANT SELECT, UPDATE ON dbo.Customers TO 'app_user'; CREATE VIEW top_salaries AS SELECT TOP 10 * FROM employees ORDER BY salary DESC; ALTER TABLE orders ADD CONSTRAINT chk_total CHECK (total >= 0); BEGIN TRANSACTION; COMMIT; ROLLBACK; TRUNCATE TABLE temp_data;\"\r\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/sensitive-words/sanitize",
+					"raw": "http://localhost:8080/api/sensitive-words/sanitize",
+					"protocol": "http",
 					"host": [
-						"{{baseUrl}}"
+						"localhost"
 					],
+					"port": "8080",
 					"path": [
 						"api",
 						"sensitive-words",
 						"sanitize"
 					]
-				}
+				},
+				"description": "Generated from cURL: curl -X POST \"http://localhost:8080/api/sensitive-words/sanitize\" \\\r\n  -H \"Content-Type: application/json\" \\\r\n  -d '{\r\n    \"input\": \"SELECT name, salary FROM employees WHERE department = '\\''HR'\\'' AND salary > 50000 ORDER BY hire_date DESC; INSERT INTO audit_log (event, created_at) VALUES ('\\''DROP TABLE test;'\\'' , GETDATE()); UPDATE accounts SET balance = balance - 100 WHERE id = 42; DELETE FROM sessions WHERE expires < CURRENT_TIMESTAMP; GRANT SELECT, UPDATE ON dbo.Customers TO '\\''app_user'\\''; CREATE VIEW top_salaries AS SELECT TOP 10 * FROM employees ORDER BY salary DESC; ALTER TABLE orders ADD CONSTRAINT chk_total CHECK (total >= 0); BEGIN TRANSACTION; COMMIT; ROLLBACK; TRUNCATE TABLE temp_data;\"\r\n  }'\r\n"
 			},
 			"response": []
 		}
