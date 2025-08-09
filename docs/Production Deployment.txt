@@ -1,0 +1,22 @@
+I will be dotting down all that I know about deploys etc. We have SRE, Devops and Deployment Engineers that currently handle all of this
+so, I do not have too much experience with production level deploys just yet.
+
+Once the code is done (Reviewed, tested, merged to release branch) I would make use of CI pipelines (e.g. Jenkins) to build the jar
+and docker images that gets uploaded to a shared private directory.
+
+During those builds I would run some checks on it (SonarQube, Trivy scans etc.)
+
+For the database I would make use of managed sql server or a vm.
+
+For the deployment/orchestration I would go with docker and maybe use something like kubernetes.
+Include things like health checks for containers, limit resources (CPU, memory), maybe look at having a way to implement rolling updates so that there are no downtime.
+We could expose the service layer to something like nginx and perhaps also add TSL with a certificate manager.
+
+I am not too sure how this works, but we could have another container as a log catcher.
+
+We can add additional security with things like what CORS we allow, perhaps also add a WAF container.
+
+We can also tag all of our releases and can also release as Staging/UAT -> Production
+Then we deploy on a site similar to what is in production and first test before deploying to production.
+
+Lastly we can write some documentation for "how to deploy", "how to rollback" or common issues that might occur.
