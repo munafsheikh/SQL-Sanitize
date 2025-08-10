@@ -33,5 +33,5 @@ Please refer to: [Additional Enhancements](docs/AdditionalEnhancements.txt) for 
 - **H2** (test profile)
 - **Flyway** (DB migrations)
 - **Lombok**
-- **Swagger / springdoc-openapi**
+- **Swagger / springdoc-openapi** `http://localhost:8080/swagger-ui.html`
 - **JUnit 5 + Mockito**
