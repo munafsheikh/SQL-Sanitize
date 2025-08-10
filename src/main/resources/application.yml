@@ -4,14 +4,14 @@ server:
 spring:
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=SQLSanitize;encrypt=false
-    username: intellij
-    password: intellij
+    username: dbUsername
+    password: dbPassword
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
