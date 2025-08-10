@@ -114,11 +114,11 @@ class SensitiveWordServiceTest {
 
     @Test
     void sanitize_masksWordsPhrasesAndSymbols() {
-        when(repo.findAll()).thenReturn(List.of(
+        when(repo.findAll()).thenReturn(new java.util.ArrayList<>(List.of(
                 new SensitiveWord(1L, "select"),
                 new SensitiveWord(2L, "order by"),
                 new SensitiveWord(3L, "*")
-        ));
+        )));
 
         String out = service.sanitize("Select * from t order by name");
 
@@ -129,5 +129,16 @@ class SensitiveWordServiceTest {
     void sanitize_nullOrEmpty_returnsAsIs() {
         assertNull(service.sanitize(null));
         assertEquals("", service.sanitize(""));
+    }
+
+    @Test
+    void phrase_is_masked_before_single_word() {
+        when(repo.findAll()).thenReturn(new java.util.ArrayList<>(List.of(
+                new SensitiveWord(1L, "select"),
+                new SensitiveWord(2L, "select * from")
+        )));
+
+        String out = service.sanitize("SELECT * FROM t");
+        assertEquals("************* t", out);
     }
 }

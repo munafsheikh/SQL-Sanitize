@@ -1,0 +1,13 @@
+I would start by finding a way hat I can cache the REGEX created for each word/phrase, perhaps storing this in the DB
+as well. Just so that there is no need to recreate it on every request
+
+I will look into loading the words into memory and then only if changes are made we refresh the list. This will save
+time by not having to call the database for each sanitize request.
+
+Currently, I am iterating over every word/phrase and masking then, I believe a better solution could be to
+
+The update can perhaps also be done in batches rather than on each change, but this I think depends on the requirement
+
+I would also add indexes on the db for faster retrieval there.
+
+Another option could be that we look at using multiple threads to split the workload

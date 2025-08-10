@@ -6,6 +6,10 @@ Please refer to: [Approach](docs/APPROACH.md) for more information of how I solv
 
 Please refer to: [Production Deployment](docs/ProductionDeployment.txt) for more information about how I would deploy this to production.
 
+Please refer to :[Performance Enhancements](docs/EnhancePerformance.txt) for how performance can be increased.
+
+Please refer to: [Additional Enhancements](docs/AdditionalEnhancements.txt) for any other enhancements I think would be nice to add.
+
 <img width="1473" height="667" alt="image" src="https://github.com/user-attachments/assets/725eb6b3-40da-4d6c-a8a0-9a5736756f7b" />
 
 ---

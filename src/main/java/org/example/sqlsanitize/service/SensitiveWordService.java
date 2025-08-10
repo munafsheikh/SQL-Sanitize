@@ -7,9 +7,12 @@ import org.example.sqlsanitize.util.WordUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Handles the main logic for working with sensitive words/phrases.
@@ -50,7 +53,7 @@ public class SensitiveWordService {
      * @param word the word or phrase to add, e.g. "select", "order by"
      * @return the saved entity with its generated ID
      * @throws IllegalArgumentException if input is null or blank
-     * @throws IllegalStateException if it already exists
+     * @throws IllegalStateException    if it already exists
      */
     @Transactional
     public SensitiveWord add(String word) {
@@ -71,12 +74,12 @@ public class SensitiveWordService {
      * <p>Also trims, lowercases, and checks for duplicates (ignoring case).
      * The existing entity’s ID stays the same.</p>
      *
-     * @param id the ID to update
+     * @param id   the ID to update
      * @param word the new value to store
      * @return the updated entity
      * @throws IllegalArgumentException if ID is null or value is invalid
-     * @throws NoSuchElementException if no entry with this ID exists
-     * @throws IllegalStateException if the new value already exists elsewhere
+     * @throws NoSuchElementException   if no entry with this ID exists
+     * @throws IllegalStateException    if the new value already exists elsewhere
      */
     @Transactional
     public SensitiveWord update(Long id, String word) {
@@ -127,18 +130,28 @@ public class SensitiveWordService {
      */
     @Transactional(readOnly = true)
     public String sanitize(String input) {
-        if (input == null || input.isEmpty()) {
-            return input;
-        }
+        if (input == null || input.isEmpty()) return input;
+
         String result = input;
 
-        for (SensitiveWord w : sensitiveWordRepository.findAll()) {
-            String raw = w.getWord();
-            String regex = WordUtils.buildBoundaryRegex(raw);
-            String mask = "*".repeat(raw.length());
-            result = result.replaceAll(regex, mask);
-        }
+        // We sort the word so the longest term (word/phrase) is first, so that we don't mask SELECT but another entry
+        // wanted SELECT * FROM to be masked
+        List<SensitiveWord> terms = new ArrayList<>(sensitiveWordRepository.findAll());
+        terms.sort(Comparator.comparingInt((SensitiveWord sW) -> sW.getWord() == null
+                ? 0
+                : sW.getWord().trim().length()).reversed());
 
+        for (SensitiveWord w : terms) {
+            if (w.getWord() == null) continue;
+            String term = w.getWord().trim();
+            if (term.isEmpty()) continue;
+
+            String regex = WordUtils.buildBoundaryRegex(term);
+            String mask = "*".repeat(term.length());
+
+            Pattern p = Pattern.compile(regex);
+            result = p.matcher(result).replaceAll(Matcher.quoteReplacement(mask));
+        }
         return result;
     }
 }

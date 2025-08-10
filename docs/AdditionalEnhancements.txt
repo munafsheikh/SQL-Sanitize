@@ -1,0 +1,12 @@
+Firstly I would start with security, what I mean is create user-based access. Only certain users can create,update,delete
+and only certain users can actually access the sanitize endpoint.
+
+Logging would also be nice, I am thinking of audit logs so that you can see who added, removed, or updated words.
+
+Bulk changes would make this very cool, like import/export so that you can upload files with all sensitive words.
+
+Adding a UI/Frontend for this would be ideal of course.
+
+Maybe add a setting that allows the user to toggle between if they want to partial word matching or exact word matching.
+
+Another upgrade could be adding rate limits on these endpoints so that it does not get spammed.
