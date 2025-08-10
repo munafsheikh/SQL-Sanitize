@@ -1,5 +1,6 @@
 package org.example.sqlsanitize;
 
+import org.example.sqlsanitize.repository.SensitiveWordRepository;
 import org.example.sqlsanitize.service.SensitiveWordService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +23,8 @@ class SqlSanitizeApplicationTests {
 
     @MockBean
     SensitiveWordService sensitiveWordService;
+    @MockBean
+    SensitiveWordRepository sensitiveWordRepository;
 
     @Test
     void contextLoads() {
