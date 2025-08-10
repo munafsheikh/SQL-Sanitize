@@ -29,9 +29,7 @@ Please refer to: [Additional Enhancements](docs/AdditionalEnhancements.txt) for 
 - **Java 17**
 - **Spring Boot**
 - **Spring Data JPA**
-- **MSSQL** (production)
-- **H2** (test profile)
-- **Flyway** (DB migrations)
+- **MSSQL**
 - **Lombok**
 - **Swagger / springdoc-openapi** `http://localhost:8080/swagger-ui.html`
-- **JUnit 5 + Mockito**
+- **JUnit**
