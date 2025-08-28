@@ -35,6 +35,6 @@ jobs:
       - name: Build Docker image
         run: docker build -t sql-sanitize .
       - name: Start services
-        run: docker-compose up -d
+        run: docker compose up -d
       - name: Deployment test
         run: curl --retry 10 --retry-connrefused http://localhost:8080/actuator/health
