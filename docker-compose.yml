@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_password123
+    ports:
+      - "1433:1433"
+  app:
+    build: .
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://db:1433;encrypt=false;databaseName=testdb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=Your_password123
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
